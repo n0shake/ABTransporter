@@ -7,8 +7,15 @@
 //
 
 #import <Foundation/Foundation.h>
+@import UIKit;
 
 @interface ABMainTransporter : NSObject
+
+typedef NS_ENUM(NSInteger, WebServiceResponseStatus)
+{
+    WebServiceFailed = 0,
+    WebServiceSuccess
+};
 
 @property (strong, nonatomic) NSString* executionSelector;
 @property (strong, nonatomic) NSString* interfaceSelector;
