@@ -19,10 +19,10 @@ static BOOL setTimeInfoLogger = NO;
 static BOOL setLogger = NO;
 
 /*Commonly used strings for URL Requests*/
-NSString *const BDAContentTypeHeaderFieldKey = @"Content-Type";
-NSString *const BDAAcceptTypHeaderFieldKey = @"Accept";
-NSString *const BDAValueForHTTPHeaders = @"application/json";
-NSString *const BDAHTTPMethod = @"POST";
+NSString *const ContentTypeHeaderFieldKey = @"Content-Type";
+NSString *const AcceptTypHeaderFieldKey = @"Accept";
+NSString *const ValueForHTTPHeaders = @"application/json";
+NSString *const HTTPMethod = @"POST";
 
 /*Web Service common response keys*/
 NSString *const BDAWebServiceResponseStatus = @"status";
@@ -75,10 +75,10 @@ _Pragma("clang diagnostic pop") \
     }
     
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:url];
-    [request setHTTPMethod:BDAHTTPMethod];
+    [request setHTTPMethod:HTTPMethod];
     
-    [request setValue:BDAValueForHTTPHeaders forHTTPHeaderField:BDAContentTypeHeaderFieldKey];
-    [request setValue:BDAValueForHTTPHeaders forHTTPHeaderField:BDAAcceptTypHeaderFieldKey];
+    [request setValue:ValueForHTTPHeaders forHTTPHeaderField:ContentTypeHeaderFieldKey];
+    [request setValue:ValueForHTTPHeaders forHTTPHeaderField:AcceptTypHeaderFieldKey];
     
     NSURLSessionUploadTask *uploadTask = [session
                                           uploadTaskWithRequest:request
@@ -287,9 +287,9 @@ _Pragma("clang diagnostic pop") \
         NSLog(@"Web Service Completion Method:\n%@", executionSelector);
     }
     
-    [request setHTTPMethod:BDAHTTPMethod];
-    [request setValue:BDAValueForHTTPHeaders forHTTPHeaderField:BDAContentTypeHeaderFieldKey];
-    [request setValue:BDAValueForHTTPHeaders forHTTPHeaderField:BDAAcceptTypHeaderFieldKey];
+    [request setHTTPMethod:HTTPMethod];
+    [request setValue:ValueForHTTPHeaders forHTTPHeaderField:ContentTypeHeaderFieldKey];
+    [request setValue:ValueForHTTPHeaders forHTTPHeaderField:AcceptTypHeaderFieldKey];
     
     NSURLSessionDataTask *dataTask = [session dataTaskWithRequest:request
                                                 completionHandler:^(NSData *data, NSURLResponse *response, NSError *error)
@@ -494,11 +494,11 @@ _Pragma("clang diagnostic pop") \
     
     
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:url];
-    [request setHTTPMethod:BDAHTTPMethod];
+    [request setHTTPMethod:HTTPMethod];
     [request setTimeoutInterval:20];
     
-    [request setValue:BDAValueForHTTPHeaders forHTTPHeaderField:BDAContentTypeHeaderFieldKey];
-    [request setValue:BDAValueForHTTPHeaders forHTTPHeaderField:BDAAcceptTypHeaderFieldKey];
+    [request setValue:ValueForHTTPHeaders forHTTPHeaderField:ContentTypeHeaderFieldKey];
+    [request setValue:ValueForHTTPHeaders forHTTPHeaderField:AcceptTypHeaderFieldKey];
     
     NSURLSessionUploadTask *uploadTask = [session
                                           uploadTaskWithRequest:request
