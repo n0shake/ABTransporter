@@ -706,6 +706,4 @@ _Pragma("clang diagnostic pop") \
     setLogger = YES;
 }
 
-
-
 @end
