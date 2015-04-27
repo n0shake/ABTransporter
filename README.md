@@ -15,15 +15,15 @@ You can NSLog the following things:
 
 - Time Logger
 
-		`[ABMainTransporter setTimeLogger];`
+		[ABMainTransporter setTimeLogger];
 
 - Response Logger
 
-		`[ABMainTransporter setResponseLogger];`
+		[ABMainTransporter setResponseLogger];
         
 - Logger [Provides both time and response information]
 
-		`[ABMainTransporter setLogger];`
+		[ABMainTransporter setLogger];
 
 
 
