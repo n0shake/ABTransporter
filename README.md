@@ -14,8 +14,16 @@ HTTPMethod : POST Method
 You can NSLog the following things:
 
 - Time Logger
+
+		`[ABMainTransporter setTimeLogger];`
+
 - Response Logger
+
+		`[ABMainTransporter setResponseLogger];`
+        
 - Logger [Provides both time and response information]
+
+		`[ABMainTransporter setLogger];`
 
 
 
