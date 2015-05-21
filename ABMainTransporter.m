@@ -10,12 +10,6 @@
 
 @implementation ABMainTransporter
 
-@synthesize executionSelector;
-@synthesize interfaceSelector;
-@synthesize errorSelector;
-
-static  BOOL setResponseLogger = NO;
-static BOOL setTimeInfoLogger = NO;
 static BOOL setLogger = NO;
 
 /*Commonly used strings for URL Requests*/
@@ -30,7 +24,7 @@ NSString *const HTTPMethod = @"POST";
     __block NSDate *methodStart;
     __block NSDate *methodFinish;
     
-    if (setTimeInfoLogger || setLogger)
+    if (setLogger)
     {
         methodStart = [NSDate date];
     }
@@ -55,7 +49,7 @@ NSString *const HTTPMethod = @"POST";
                                       {
                                           completionBlock(data, response, error);
                                           
-                                          if (setTimeInfoLogger || setLogger)
+                                          if (setLogger)
                                           {
                                               methodFinish = [NSDate date];
                                               NSLog(@"Completion block reached in:%f second(s)", [methodFinish timeIntervalSinceDate:methodStart]);
@@ -72,7 +66,7 @@ NSString *const HTTPMethod = @"POST";
     __block NSDate *methodStart;
     __block NSDate *methodFinish;
     
-    if (setTimeInfoLogger || setLogger)
+    if (setLogger)
     {
         methodStart = [NSDate date];
     }
@@ -114,7 +108,7 @@ NSString *const HTTPMethod = @"POST";
                                               
                                               completionBlock(data, error, response);
                                               
-                                                  if (setTimeInfoLogger || setLogger)
+                                                  if (setLogger)
                                                   {
                                                       methodFinish = [NSDate date];
                                                       NSLog(@"Completion block reached in:%f second(s)", [methodFinish timeIntervalSinceDate:methodStart]);
@@ -126,17 +120,6 @@ NSString *const HTTPMethod = @"POST";
     
     [uploadTask resume];
 
-}
-
-
-+ (void)setTimeLogger
-{
-    setTimeInfoLogger = YES;
-}
-
-+ (void)setResponseLogger
-{
-    setResponseLogger = YES;
 }
 
 + (void)setLogger
