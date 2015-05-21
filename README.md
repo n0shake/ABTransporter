@@ -1,5 +1,5 @@
 # ABTransporter
-Simple wrapper class for NSURLSession upload and data tasks.
+Simple helper class for NSURLSession upload and data tasks.
 
 ### Features:
 
