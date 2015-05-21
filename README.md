@@ -46,15 +46,7 @@ Completion block with NSData, NSError, NSURLResponse as return values (Same valu
 You can easily check the following things in the console:
 
 Just write the respective codeblock before you call your WebService.
-
-- Time Logger
-
-		[ABMainTransporter setTimeLogger];
-
-- Response Logger
-
-		[ABMainTransporter setResponseLogger];
         
-- Logger [Provides both time and response information]
+- Logger
 
 		[ABMainTransporter setLogger];
