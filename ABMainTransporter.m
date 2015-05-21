@@ -25,7 +25,7 @@ NSString *const ValueForHTTPHeaders = @"application/json";
 NSString *const HTTPMethod = @"POST";
 
 
-+ (void)dataWebServicewithWebServicePath:(NSString *)path bySender:(id)sender withCompletionBlock:(void(^)(NSData *data, NSURLResponse *response, NSError *error))completionBlock;
++ (void)dataWebServicewithWebServicePath:(NSString *)path withCompletionBlock:(void(^)(NSData *data, NSURLResponse *response, NSError *error))completionBlock;
 {
     __block NSDate *methodStart;
     __block NSDate *methodFinish;
@@ -67,7 +67,7 @@ NSString *const HTTPMethod = @"POST";
 }
 
 
-+ (void)uploadDataWebServiceWithInputDictionary:(NSDictionary *)inputDictionary andWebServicePath:(NSString *)path bySender:(id)sender withCompletionBlock:(void(^)(NSData *data, NSError *error, NSURLResponse *response))completionBlock
++ (void)uploadDataWebServiceWithInputDictionary:(NSDictionary *)inputDictionary andWebServicePath:(NSString *)path withCompletionBlock:(void(^)(NSData *data, NSError *error, NSURLResponse *response))completionBlock
 {
     __block NSDate *methodStart;
     __block NSDate *methodFinish;

@@ -22,9 +22,9 @@
  
  */
 
-+ (void)dataWebServicewithWebServicePath:(NSString *)path bySender:(id)sender withCompletionBlock:(void(^)(NSData *data, NSURLResponse *response, NSError *error))completionBlock;
++ (void)dataWebServicewithWebServicePath:(NSString *)path withCompletionBlock:(void(^)(NSData *data, NSURLResponse *response, NSError *error))completionBlock;
 
-+ (void)uploadDataWebServiceWithInputDictionary:(NSDictionary *)inputDictionary andWebServicePath:(NSString *)path bySender:(id)sender withCompletionBlock:(void(^)(NSData *data, NSError *error, NSURLResponse *response))completionBlock;
++ (void)uploadDataWebServiceWithInputDictionary:(NSDictionary *)inputDictionary andWebServicePath:(NSString *)path withCompletionBlock:(void(^)(NSData *data, NSError *error, NSURLResponse *response))completionBlock;
 
 + (void)setTimeLogger;
 
