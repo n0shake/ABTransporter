@@ -14,13 +14,11 @@ HTTPMethod : POST Method
 
 ### Calling the WebService
 
-### Upload Task : (When your WebService needs to send some input)
+#### Upload Task : (When your WebService needs to send some input; uses NSURLSessionUploadTask)
 
 	[ABMainTransporter uploadDataWebServiceWithInputDictionary:inputDictionary
                                           andWebServicePath:webServicePath
-                                                   bySender:self
-                                 withUICompletionMethodName:interfaceSelector
-                           andExecutionMethodCompletionName:executionSelector];
+                                        withCompletionBlock:completionBlock];
 
 ``inputDictionary``
 
@@ -34,41 +32,16 @@ Your WebService path in NSString format
 
 Instance of class where UICompletionMethod and ExecutionMethod resides
 
-``interfaceSelector``
+``completionBlock``
 
-Method name in string format which will be performed on the main thread
+Completion block with NSData, NSError, NSURLResponse as return values (Same values returned by NSURLSessionDataTask)
 
-``executionSelector``
-
-Method name in string format. Perform all non UIKit related tasks here.
-
-_You can pass nil to interfaceSelector and executionSelector if you want to._
-
-### Data Task : (When your WebService does not have any input)
+### Data Task : (When your WebService does not have any input; uses NSURLSessionDataTask)
 
 
 	[ABMainTransporter dataWebServicewithWebServicePath:path
-                                   bySender:self
- 				withUICompletionMethodName:interfaceSelector
-                andExecutionMethodCompletionName:executionSelector];
+ 				withCompletionBlock:completionBlock];
                 
-### Upload Task : (When you want to do error handling)
-
-
-- Initialize ABMainTransporter (for e.g. ``webService`` here)
-
-- Set the errorSelector
-
-- Set the UISelector
-
-- Set the executionSelector
-
-- And write the following line:
-
-		[webService errorHandlingUploadWebServicewithInput:inputDictionary
-                                     andWebServicePath:IMGUPLOAD_PATH
-                                              bySender:self];
-
 You can easily check the following things in the console:
 
 Just write the respective codeblock before you call your WebService.
@@ -84,8 +57,3 @@ Just write the respective codeblock before you call your WebService.
 - Logger [Provides both time and response information]
 
 		[ABMainTransporter setLogger];
-
-
-
-
-
