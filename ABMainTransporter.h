@@ -36,11 +36,9 @@ typedef NS_ENUM(NSInteger, WebServiceResponseStatus)
  
  */
 
-+ (void)dataWebServicewithWebServicePath:(NSString *)path bySender:(id)sender withUICompletionMethodName:(NSString *)selector andExecutionMethodCompletionName:(NSString *)executionSelector;
++ (void)dataWebServicewithWebServicePath:(NSString *)path bySender:(id)sender withCompletionBlock:(void(^)(NSData *data, NSURLResponse *response, NSError *error))completionBlock;
 
-+ (void)uploadDataWebServiceWithInputDictionary:(NSDictionary *)inputDictionary andWebServicePath:(NSString *)path bySender:(id)sender withUICompletionMethodName:(NSString *)selector andExecutionMethodCompletionName:(NSString *)executionSelector;
-
-+ (void)uploadDataWebServiceWithInputDictionary:(NSDictionary *)inputDictionary andWebServicePath:(NSString *)path bySender:(id)sender withCompletionBlock:(void(^)(NSError *error, NSDictionary *responseDictionary))completionBlock;
++ (void)uploadDataWebServiceWithInputDictionary:(NSDictionary *)inputDictionary andWebServicePath:(NSString *)path bySender:(id)sender withCompletionBlock:(void(^)(NSData *data, NSError *error, NSURLResponse *response))completionBlock;
 
 /*If sender wants to handle error*/
 - (void)errorHandlingUploadWebServicewithInput:(NSDictionary *)inputDictionary andWebServicePath:(NSString *)path bySender:(id)sender;

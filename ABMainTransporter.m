@@ -40,229 +40,7 @@ _Pragma("clang diagnostic pop") \
 } while (0)
 
 
-+ (void)uploadDataWebServiceWithInputDictionary:(NSDictionary *)inputDictionary andWebServicePath:(NSString *)path bySender:(id)sender withUICompletionMethodName:(NSString *)selector andExecutionMethodCompletionName:(NSString *)executionSelector
-{
-    
-    __block NSDate *methodStart;
-    __block NSDate *methodFinish;
-    
-    if (setTimeInfoLogger || setLogger)
-    {
-        methodStart = [NSDate date];
-    }
-    
-    __block NSDictionary *responseDictionary = [NSDictionary dictionary];
-    
-    NSURLSessionConfiguration *sessionConfig = [NSURLSessionConfiguration defaultSessionConfiguration];
-    
-    sessionConfig.timeoutIntervalForRequest = 20;
-    
-    NSURLSession *session = [NSURLSession sessionWithConfiguration:sessionConfig];
-    
-    NSError *error;
-    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:inputDictionary
-                                                       options:NSJSONWritingPrettyPrinted
-                                                         error:&error];
-    
-    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@", path]];
-    
-    if (setLogger)
-    {
-        NSLog(@"Input Dictionary:\n%@", inputDictionary);
-        NSLog(@"Web Service Path:\n%@", [NSString stringWithFormat:@"%@", path]);
-        NSLog(@"UI Completion Method:\n%@", selector);
-        NSLog(@"Web Service Completion Method:\n%@", executionSelector);
-    }
-    
-    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:url];
-    [request setHTTPMethod:HTTPMethod];
-    
-    [request setValue:ValueForHTTPHeaders forHTTPHeaderField:ContentTypeHeaderFieldKey];
-    [request setValue:ValueForHTTPHeaders forHTTPHeaderField:AcceptTypHeaderFieldKey];
-    
-    NSURLSessionUploadTask *uploadTask = [session
-                                          uploadTaskWithRequest:request
-                                          fromData:jsonData
-                                          completionHandler:^(NSData *data,
-                                                              NSURLResponse *response,
-                                                              NSError *error)
-                                          {
-                                              
-                                              /*Check if any error. If nil then proceed*/
-                                              if (error == nil)
-                                              {
-                                                  responseDictionary = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
-                                                  NSString *message = [[responseDictionary objectForKey:BDAWebServiceResponse] objectForKey:BDAWebServiceResponseMessage];
-                                                  NSNumber *status = [[responseDictionary objectForKey:BDAWebServiceResponse] objectForKey:BDAWebServiceResponseStatus];
-                                                  
-                                                  if (setResponseLogger || setLogger)
-                                                  {
-                                                      NSLog(@"WS method response:%@", responseDictionary);
-                                                  }
-                                                  
-                                                  if (responseDictionary == nil)
-                                                  {
-                                                      dispatch_async(dispatch_get_main_queue(), ^{
-                                                          NSLog(@"No Response Received");
-                                                      });
-                                                      
-                                                      
-                                                      return;
-                                                  }
-                                                  
-                                                  /*Check if status is BDAWebServiceSucess. If success, then proceed*/
-                                                  if (status.integerValue == WebServiceSuccess)
-                                                  {
-                                                      
-                                                      if([sender respondsToSelector:NSSelectorFromString(executionSelector)] &&
-                                                         [executionSelector length] > 0)
-                                                      {
-                                                          SuppressPerformSelectorLeakWarning
-                                                          (
-                                                           [sender performSelector: NSSelectorFromString(executionSelector) withObject:responseDictionary];
-                                                           );
-                                                          
-                                                          if (setTimeInfoLogger || setLogger)
-                                                          {
-                                                              methodFinish = [NSDate date];
-                                                              NSLog(@"WS method completed in:%f second(s)", [methodFinish timeIntervalSinceDate:methodStart]);
-                                                          }
-                                                          
-                                                      }
-                                                      else if([executionSelector length] > 0 && ![sender respondsToSelector:NSSelectorFromString(executionSelector)])
-                                                      {
-                                                          [NSException raise:[NSString stringWithFormat:@"%@ must implement the specified:%@", sender, executionSelector]format:@"Web Service Completion method not implemented"];
-                                                      }
-                                                      
-                                                      if([selector length] > 0 && [sender respondsToSelector:NSSelectorFromString(selector)])
-                                                          dispatch_async(dispatch_get_main_queue(), ^{
-                                                              
-                                                              SuppressPerformSelectorLeakWarning
-                                                              (
-                                                               [sender performSelector: NSSelectorFromString(selector) withObject:message];
-                                                               );
-                                                              
-                                                              if (setTimeInfoLogger || setLogger)
-                                                              {
-                                                                  methodFinish = [NSDate date];
-                                                                  NSLog(@"UI method completed in:%f second(s)", [methodFinish timeIntervalSinceDate:methodStart]);
-                                                              }
-                                                          });
-                                                      
-                                                      else if([selector length] > 0 && ![sender respondsToSelector:NSSelectorFromString(selector)])
-                                                      {
-                                                          [NSException raise:[NSString stringWithFormat:@"%@ must implement the specified:%@", sender, selector]format:@"UI Completion method not implemented"];
-                                                      }
-                                                      
-                                                  }
-                                                  /*WebService has returned BDAWebServiceFailed. Show message.*/
-                                                  else if (status.integerValue == WebServiceFailed)
-                                                  {
-                                                      
-                                                      dispatch_async(dispatch_get_main_queue(), ^{
-                                                          
-                                                          NSLog(@"%@", message);
-                                                      });
-                                                      
-                                                      if (setLogger || setTimeInfoLogger)
-                                                      {
-                                                          methodFinish = [NSDate date];
-                                                          NSLog(@"Web Service error block reached in:%f second(s)", [methodFinish timeIntervalSinceDate:methodStart]);
-                                                      }
-                                                      
-                                                  }
-                                              }
-                                              /*Error is not nil. Show error*/
-                                              else
-                                              {
-                                                  NSInteger errorCode = [[[error userInfo] objectForKey:@"NSUnderlyingError"] code];
-                                                  
-                                                  NSString *errorString;
-                                                  
-                                                  switch (errorCode)
-                                                  {
-                                                      case NSURLErrorCannotFindHost:
-                                                          errorString = @"Cannot Find Host!";
-                                                          break;
-                                                          
-                                                      case NSURLErrorNotConnectedToInternet:
-                                                          errorString = @"No Internet!";
-                                                          break;
-                                                          
-                                                      case NSURLErrorTimedOut:
-                                                          errorString = @"Request Timed Out!";
-                                                          break;
-                                                          
-                                                      default:
-                                                          errorString = @"Other error";
-                                                          break;
-                                                  }
-                                                  
-                                                  [uploadTask cancel];
-                                                  
-                                                  
-                                                  dispatch_async(dispatch_get_main_queue(), ^{
-                                                      
-                                                      if (errorCode == NSURLErrorTimedOut ||
-                                                          errorCode == NSURLErrorNotConnectedToInternet ||
-                                                          errorCode == NSURLErrorCannotFindHost)
-                                                      {
-                                                          
-                                                          if (NSClassFromString(@"UIAlertController"))
-                                                          {
-                                                              UIAlertController *errorAlert = [UIAlertController alertControllerWithTitle:errorString
-                                                                                                                                  message:nil
-                                                                                                                           preferredStyle:UIAlertControllerStyleAlert];
-                                                              
-                                                              UIAlertAction *retryAction = [UIAlertAction actionWithTitle:@"Retry" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action){
-                                                                  [self uploadDataWebServiceWithInputDictionary:inputDictionary
-                                                                                              andWebServicePath:path
-                                                                                                       bySender:sender
-                                                                                     withUICompletionMethodName:selector
-                                                                               andExecutionMethodCompletionName:executionSelector];
-                                                                  
-                                                              }];
-                                                              
-                                                              UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
-                                                              
-                                                              [errorAlert addAction:cancelAction];
-                                                              [errorAlert addAction:retryAction];
-                                                              
-                                                              [sender presentViewController:errorAlert animated:YES completion:nil];
-                                                          }
-                                                          else
-                                                          {
-                                                              UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Request Timed Out"
-                                                                                                              message:nil
-                                                                                                             delegate:self
-                                                                                                    cancelButtonTitle:@"Cancel"
-                                                                                                    otherButtonTitles:@"Retry", nil];
-                                                              alert.alertViewStyle = UIAlertViewStylePlainTextInput;
-                                                              
-                                                              [alert show];
-                                                          }
-                                                      }
-                                                      else
-                                                      {
-                                                          NSLog(@"Error:%@", error);
-                                                      }
-                                                      
-                                                  });
-                                                  
-                                                  if (setTimeInfoLogger || setLogger)
-                                                  {
-                                                      methodFinish = [NSDate date];
-                                                      NSLog(@"NSError block reached in:%f second(s)", [methodFinish timeIntervalSinceDate:methodStart]);
-                                                  }
-                                                  
-                                                  
-                                              }
-                                          }];
-    
-    [uploadTask resume];
-}
-
-+ (void)dataWebServicewithWebServicePath:(NSString *)path bySender:(id)sender withUICompletionMethodName:(NSString *)selector andExecutionMethodCompletionName:(NSString *)executionSelector
++ (void)dataWebServicewithWebServicePath:(NSString *)path bySender:(id)sender withCompletionBlock:(void(^)(NSData *data, NSURLResponse *response, NSError *error))completionBlock;
 {
     __block NSDate *methodStart;
     __block NSDate *methodFinish;
@@ -271,8 +49,6 @@ _Pragma("clang diagnostic pop") \
     {
         methodStart = [NSDate date];
     }
-    
-    __block NSDictionary *responseDictionary = [NSDictionary dictionary];
     
     NSURLSession *session = [NSURLSession sharedSession];
     
@@ -283,8 +59,6 @@ _Pragma("clang diagnostic pop") \
     if (setLogger)
     {
         NSLog(@"Web Service Path:\n%@", [NSString stringWithFormat:@"%@",path]);
-        NSLog(@"UI Completion Method:\n%@", selector);
-        NSLog(@"Web Service Completion Method:\n%@", executionSelector);
     }
     
     [request setHTTPMethod:HTTPMethod];
@@ -294,169 +68,14 @@ _Pragma("clang diagnostic pop") \
     NSURLSessionDataTask *dataTask = [session dataTaskWithRequest:request
                                                 completionHandler:^(NSData *data, NSURLResponse *response, NSError *error)
                                       {
-                                          /*Check if any error. If nil then proceed*/
-                                          if (error == nil)
+                                          completionBlock(data, response, error);
+                                          
+                                          if (setTimeInfoLogger || setLogger)
                                           {
-                                              responseDictionary = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
-                                              NSString *message = [[responseDictionary objectForKey:BDAWebServiceResponse] objectForKey:BDAWebServiceResponseMessage];
-                                              NSNumber *status = [[responseDictionary objectForKey:BDAWebServiceResponse] objectForKey:BDAWebServiceResponseStatus];
-                                              
-                                              if (setResponseLogger || setLogger)
-                                              {
-                                                  NSLog(@"WS method response:%@", responseDictionary);
-                                              }
-                                              
-                                              if (responseDictionary == nil)
-                                              {
-                                                  dispatch_async(dispatch_get_main_queue(), ^{
-                                                      NSLog(@"No Response Recieved");
-                                                  });
-                                                  
-                                                  return;
-                                              }
-                                              
-                                              /*Check if status is BDAWebServiceSucess. If success, then proceed*/
-                                              if (status.integerValue == WebServiceSuccess)
-                                              {
-                                                  if([sender respondsToSelector:NSSelectorFromString(executionSelector)] &&
-                                                     [executionSelector length] > 1)
-                                                  {
-                                                      SuppressPerformSelectorLeakWarning
-                                                      (
-                                                       [sender performSelector: NSSelectorFromString(executionSelector) withObject:responseDictionary];
-                                                       );
-                                                      
-                                                      if (setTimeInfoLogger || setLogger)
-                                                      {
-                                                          methodFinish = [NSDate date];
-                                                          NSLog(@"WS method completed in:%f second(s)", [methodFinish timeIntervalSinceDate:methodStart]);
-                                                      }
-                                                  }
-                                                  else if([executionSelector length] > 0 && ![sender respondsToSelector:NSSelectorFromString(executionSelector)])
-                                                  {
-                                                      [NSException raise:[NSString stringWithFormat:@"%@ must implement the specified:%@", sender, executionSelector]format:@"Web Service Completion method not implemented"];
-                                                  }
-                                                  
-                                                  if([selector length] > 0 && [sender respondsToSelector:NSSelectorFromString(selector)])
-                                                      dispatch_async(dispatch_get_main_queue(), ^{
-                                                          
-                                                          SuppressPerformSelectorLeakWarning
-                                                          (
-                                                           [sender performSelector: NSSelectorFromString(selector) withObject:message];
-                                                           );
-                                                          
-                                                          if (setTimeInfoLogger || setLogger)
-                                                          {
-                                                              methodFinish = [NSDate date];
-                                                              NSLog(@"UI method completed in:%f second(s)", [methodFinish timeIntervalSinceDate:methodStart]);
-                                                          }
-                                                          
-                                                      });
-                                                  
-                                                  else if([selector length] > 0 && ![sender respondsToSelector:NSSelectorFromString(selector)])
-                                                  {
-                                                      [NSException raise:[NSString stringWithFormat:@"%@ must implement the specified:%@", sender, selector]format:@"UI Completion method not implemented"];
-                                                  }
-                                                  
-                                              }
-                                              /*WebService has returned BDAWebServiceFailed. Show message.*/
-                                              else if (status.integerValue == WebServiceFailed)
-                                              {
-                                                  dispatch_async(dispatch_get_main_queue(), ^{
-                                                      NSLog(@"Message:%@", message);
-                                                  });
-                                                  
-                                                  if (setLogger || setTimeInfoLogger)
-                                                  {
-                                                      methodFinish = [NSDate date];
-                                                      NSLog(@"Web Service error block reached in:%f second(s)", [methodFinish timeIntervalSinceDate:methodStart]);
-                                                  }
-                                              }
+                                              methodFinish = [NSDate date];
+                                              NSLog(@"Completion block reached in:%f second(s)", [methodFinish timeIntervalSinceDate:methodStart]);
                                           }
-                                          /*Error is not nil. Show error*/
-                                          else
-                                          {
-                                              NSInteger errorCode = [[[error userInfo] objectForKey:@"NSUnderlyingError"] code];
-                                              NSString *errorString;
-                                              
-                                              switch (errorCode)
-                                              {
-                                                  case NSURLErrorCannotFindHost:
-                                                      errorString = @"Cannot Find Host!";
-                                                      break;
-                                                      
-                                                  case NSURLErrorNotConnectedToInternet:
-                                                      errorString = @"No Internet!";
-                                                      break;
-                                                      
-                                                  case NSURLErrorTimedOut:
-                                                      errorString = @"Request Timed Out!";
-                                                      break;
-                                                      
-                                                  default:
-                                                      errorString = @"Other error";
-                                                      break;
-                                              }
-                                              
-                                              [dataTask cancel];
-                                              
-                                              dispatch_async(dispatch_get_main_queue(),
-                                                             ^{
-                                                                 
-                                                                 if (errorCode == NSURLErrorTimedOut ||
-                                                                     errorCode == NSURLErrorNotConnectedToInternet ||
-                                                                     errorCode == NSURLErrorCannotFindHost)
-                                                                 {
-                                                                     if (NSClassFromString(@"UIAlertController"))
-                                                                     {
-                                                                         UIAlertController *errorAlert = [UIAlertController alertControllerWithTitle:errorString
-                                                                                                                                             message:nil
-                                                                                                                                      preferredStyle:UIAlertControllerStyleAlert];
-                                                                         
-                                                                         UIAlertAction *retryAction = [UIAlertAction actionWithTitle:@"Retry"
-                                                                                                                               style:UIAlertActionStyleDefault
-                                                                                                                             handler:^(UIAlertAction *action)
-                                                                                                       {
-                                                                                                           [self dataWebServicewithWebServicePath:path
-                                                                                                                                         bySender:sender
-                                                                                                                       withUICompletionMethodName:selector
-                                                                                                                 andExecutionMethodCompletionName:executionSelector];
-                                                                                                           
-                                                                                                       }];
-                                                                         
-                                                                         UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
-                                                                         
-                                                                         [errorAlert addAction:cancelAction];
-                                                                         [errorAlert addAction:retryAction];
-                                                                         
-                                                                         [sender presentViewController:errorAlert animated:YES completion:nil];
-                                                                     }
-                                                                     else
-                                                                     {
-                                                                         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Request Timed Out"
-                                                                                                                         message:nil
-                                                                                                                        delegate:self
-                                                                                                               cancelButtonTitle:@"Cancel"
-                                                                                                               otherButtonTitles:@"Retry", nil];
-                                                                         alert.alertViewStyle = UIAlertViewStylePlainTextInput;
-                                                                         
-                                                                         [alert show];
-                                                                     }
-                                                                     
-                                                                 }
-                                                                 else
-                                                                 {
-                                                                     NSLog(@"Error:%@", error);
-                                                                 }
-                                                                 
-                                                             });
-                                              
-                                              if (setTimeInfoLogger || setLogger)
-                                              {
-                                                  methodFinish = [NSDate date];
-                                                  NSLog(@"NSError block reached in:%f second(s)", [methodFinish timeIntervalSinceDate:methodStart]);
-                                              }
-                                          }
+
                                       }];
     
     [dataTask resume];
@@ -690,7 +309,7 @@ _Pragma("clang diagnostic pop") \
     
 }
 
-+ (void)uploadDataWebServiceWithInputDictionary:(NSDictionary *)inputDictionary andWebServicePath:(NSString *)path bySender:(id)sender withCompletionBlock:(void(^)(NSError *error, NSDictionary *responseDictionary))completionBlock
++ (void)uploadDataWebServiceWithInputDictionary:(NSDictionary *)inputDictionary andWebServicePath:(NSString *)path bySender:(id)sender withCompletionBlock:(void(^)(NSData *data, NSError *error, NSURLResponse *response))completionBlock
 {
     __block NSDate *methodStart;
     __block NSDate *methodFinish;
@@ -699,8 +318,6 @@ _Pragma("clang diagnostic pop") \
     {
         methodStart = [NSDate date];
     }
-    
-    __block NSDictionary *responseDictionary = [NSDictionary dictionary];
     
     NSURLSessionConfiguration *sessionConfig = [NSURLSessionConfiguration defaultSessionConfiguration];
     
@@ -735,136 +352,19 @@ _Pragma("clang diagnostic pop") \
                                                               NSError *error)
                                           {
                                               
-                                              /*Check if any error. If nil then proceed*/
-                                              if (error == nil)
-                                              {
-                                                  responseDictionary = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
-                                                  NSString *message = [[responseDictionary objectForKey:BDAWebServiceResponse] objectForKey:BDAWebServiceResponseMessage];
-                                                  NSNumber *status = [[responseDictionary objectForKey:BDAWebServiceResponse] objectForKey:BDAWebServiceResponseStatus];
-                                                  
-                                                  if (setResponseLogger || setLogger)
-                                                  {
-                                                      NSLog(@"WS method response:%@", responseDictionary);
-                                                  }
-                                                  
-                                                  if (responseDictionary == nil)
-                                                  {
-                                                      dispatch_async(dispatch_get_main_queue(), ^{
-                                                          NSLog(@"No Response Received");
-                                                      });
-                                                      
-                                                      
-                                                      return;
-                                                  }
-                                                  
-                                                  /*Check if status is BDAWebServiceSucess. If success, then proceed*/
-                                                  if (status.integerValue == WebServiceSuccess)
-                                                  {
-                                                      
-                                                      completionBlock(error, responseDictionary);
-                                                  }
-                                                  /*WebService has returned BDAWebServiceFailed. Show message.*/
-                                                  else if (status.integerValue == WebServiceFailed)
-                                                  {
-                                                      
-                                                      dispatch_async(dispatch_get_main_queue(), ^{
-                                                          
-                                                          NSLog(@"%@", message);
-                                                      });
-                                                      
-                                                      if (setLogger || setTimeInfoLogger)
-                                                      {
-                                                          methodFinish = [NSDate date];
-                                                          NSLog(@"Web Service error block reached in:%f second(s)", [methodFinish timeIntervalSinceDate:methodStart]);
-                                                      }
-                                                      
-                                                  }
-                                              }
-                                              /*Error is not nil. Show error*/
-                                              else
-                                              {
-                                                  NSInteger errorCode = [[[error userInfo] objectForKey:@"NSUnderlyingError"] code];
-                                                  
-                                                  NSString *errorString;
-                                                  
-                                                  switch (errorCode)
-                                                  {
-                                                      case NSURLErrorCannotFindHost:
-                                                          errorString = @"Cannot Find Host!";
-                                                          break;
-                                                          
-                                                      case NSURLErrorNotConnectedToInternet:
-                                                          errorString = @"No Internet!";
-                                                          break;
-                                                          
-                                                      case NSURLErrorTimedOut:
-                                                          errorString = @"Request Timed Out!";
-                                                          break;
-                                                          
-                                                      default:
-                                                          errorString = @"Other error";
-                                                          break;
-                                                  }
-                                                  
-                                                  [uploadTask cancel];
-                                                  
-                                                  
-                                                  dispatch_async(dispatch_get_main_queue(), ^{
-                                                      
-                                                      if (errorCode == NSURLErrorTimedOut ||
-                                                          errorCode == NSURLErrorNotConnectedToInternet ||
-                                                          errorCode == NSURLErrorCannotFindHost)
-                                                      {
-                                                          
-                                                          if (NSClassFromString(@"UIAlertController"))
-                                                          {
-                                                              UIAlertController *errorAlert = [UIAlertController alertControllerWithTitle:errorString
-                                                                                                                                  message:nil
-                                                                                                                           preferredStyle:UIAlertControllerStyleAlert];
-                                                              
-                                                              UIAlertAction *retryAction = [UIAlertAction actionWithTitle:@"Retry" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action){
-                                                                  [self uploadDataWebServiceWithInputDictionary:inputDictionary
-                                                                                              andWebServicePath:path
-                                                                                                       bySender:sender
-                                                                                            withCompletionBlock:completionBlock];
-                                                                  
-                                                              }];
-                                                              
-                                                              UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
-                                                              
-                                                              [errorAlert addAction:cancelAction];
-                                                              [errorAlert addAction:retryAction];
-                                                              
-                                                              [sender presentViewController:errorAlert animated:YES completion:nil];
-                                                          }
-                                                          else
-                                                          {
-                                                              UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Request Timed Out"
-                                                                                                              message:nil
-                                                                                                             delegate:self
-                                                                                                    cancelButtonTitle:@"Cancel"
-                                                                                                    otherButtonTitles:@"Retry", nil];
-                                                              alert.alertViewStyle = UIAlertViewStylePlainTextInput;
-                                                              
-                                                              [alert show];
-                                                          }
-                                                      }
-                                                      else
-                                                      {
-                                                          NSLog(@"Error:%@", error);
-                                                      }
-                                                      
-                                                  });
-                                                  
+                                              /* Completely removing unneccesary logic. Sending block with all the information*/
+                                              
+                                              completionBlock(data, error, response);
+                                              
                                                   if (setTimeInfoLogger || setLogger)
                                                   {
                                                       methodFinish = [NSDate date];
-                                                      NSLog(@"NSError block reached in:%f second(s)", [methodFinish timeIntervalSinceDate:methodStart]);
+                                                      NSLog(@"Completion block reached in:%f second(s)", [methodFinish timeIntervalSinceDate:methodStart]);
                                                   }
                                                   
                                                   
-                                              }
                                           }];
+                                          
     
     [uploadTask resume];
 
