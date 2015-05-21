@@ -1,10 +1,11 @@
 # ABTransporter
+
 Simple helper class for NSURLSession upload and data tasks.
 
 ### Features:
 
 1. Call WebServices using a single line of code
-2. Define callback methods. No need for checking delegate methods
+2. Handle callback easily through completion block
 3. Check response and time information easily
 
 Currently, the following commonly used settings have been set:
