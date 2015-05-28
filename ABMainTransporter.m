@@ -119,6 +119,8 @@ NSString *const HTTPMethod = @"POST";
                                           
     
     [uploadTask resume];
+    
+
 
 }
 
@@ -126,5 +128,7 @@ NSString *const HTTPMethod = @"POST";
 {
     setLogger = YES;
 }
+
+
 
 @end
