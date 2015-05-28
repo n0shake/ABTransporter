@@ -15,11 +15,13 @@ HTTPMethod : POST Method
 
 ### Calling the WebService
 
-#### Upload Task : (When your WebService needs to send some input; uses NSURLSessionUploadTask)
+#### Upload Task : 
 
-	[ABMainTransporter uploadDataWebServiceWithInputDictionary:inputDictionary
+    [ABMainTransporter uploadDataWebServiceWithInputDictionary:parameters
                                           andWebServicePath:webServicePath
-                                        withCompletionBlock:completionBlock];
+   	withCompletionBlock:^(NSData *data, NSError *error, NSURLResponse *response{
+         
+        }];
 
 ``inputDictionary``
 
@@ -37,11 +39,12 @@ Instance of class where UICompletionMethod and ExecutionMethod resides
 
 Completion block with NSData, NSError, NSURLResponse as return values (Same values returned by NSURLSessionDataTask)
 
-### Data Task : (When your WebService does not have any input; uses NSURLSessionDataTask)
-
+### Data Task :
 
 	[ABMainTransporter dataWebServicewithWebServicePath:path
- 				withCompletionBlock:completionBlock];
+ 	withCompletionBlock:^(NSData *data, NSError *error, NSURLResponse *response{
+         
+        }];
                 
 You can easily check the following things in the console:
 
