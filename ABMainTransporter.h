@@ -18,9 +18,16 @@
  
  */
 
+/*Designated singleton*/
+
++ (instancetype)sharedTransporter;
+
 + (void)dataWebServicewithWebServicePath:(NSString *)path withCompletionBlock:(void(^)(NSData *data, NSURLResponse *response, NSError *error))completionBlock;
 
 + (void)uploadDataWebServiceWithInputDictionary:(NSDictionary *)inputDictionary andWebServicePath:(NSString *)path withCompletionBlock:(void(^)(NSData *data, NSError *error, NSURLResponse *response))completionBlock;
+
+/*For GET Requests*/
+- (void)GETWebServiceWithInputDictionary:(NSDictionary *)inputDictionary andWebServicePath:(NSString *)path withCompletionBlock:(void(^)(NSData *data, NSError *error, NSURLResponse *response))completionBlock;
 
 + (void)setLogger;
 

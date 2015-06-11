@@ -7,16 +7,36 @@
 //
 
 #import "ABMainTransporter.h"
+#import "ABURLRequest.h"
 
 @implementation ABMainTransporter
 
 static BOOL setLogger = NO;
+static ABMainTransporter *sharedTransporter = nil;
+static NSMutableURLRequest *defaultRequest = nil;
 
 /*Commonly used strings for URL Requests*/
 NSString *const ContentTypeHeaderFieldKey = @"Content-Type";
 NSString *const AcceptTypHeaderFieldKey = @"Accept";
 NSString *const ValueForHTTPHeaders = @"application/json";
-NSString *const HTTPMethod = @"POST";
+NSString *const HTTPPOSTMethod = @"POST";
+NSString *const HTTPGETMethod = @"GET";
+
+
++ (instancetype)sharedTransporter
+{
+    if (sharedTransporter == nil)
+    {
+        /*Using a thread safe pattern*/
+        static dispatch_once_t onceToken;
+        dispatch_once(&onceToken, ^{
+            sharedTransporter = [[self alloc] init];
+        });
+        
+    }
+    
+    return sharedTransporter;
+}
 
 
 + (void)dataWebServicewithWebServicePath:(NSString *)path withCompletionBlock:(void(^)(NSData *data, NSURLResponse *response, NSError *error))completionBlock;
@@ -40,7 +60,7 @@ NSString *const HTTPMethod = @"POST";
         NSLog(@"Web Service Path:\n%@", [NSString stringWithFormat:@"%@",path]);
     }
     
-    [request setHTTPMethod:HTTPMethod];
+    [request setHTTPMethod:HTTPPOSTMethod];
     [request setValue:ValueForHTTPHeaders forHTTPHeaderField:ContentTypeHeaderFieldKey];
     [request setValue:ValueForHTTPHeaders forHTTPHeaderField:AcceptTypHeaderFieldKey];
     
@@ -91,7 +111,7 @@ NSString *const HTTPMethod = @"POST";
     }
     
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:url];
-    [request setHTTPMethod:HTTPMethod];
+    [request setHTTPMethod:HTTPPOSTMethod];
     
     [request setValue:ValueForHTTPHeaders forHTTPHeaderField:ContentTypeHeaderFieldKey];
     [request setValue:ValueForHTTPHeaders forHTTPHeaderField:AcceptTypHeaderFieldKey];
@@ -120,14 +140,74 @@ NSString *const HTTPMethod = @"POST";
     
     [uploadTask resume];
     
+}
 
-
+- (void)GETWebServiceWithInputDictionary:(NSDictionary *)inputDictionary andWebServicePath:(NSString *)path withCompletionBlock:(void (^)(NSData *, NSError *, NSURLResponse *))completionBlock
+{
+    __block NSDate *methodStart;
+    __block NSDate *methodFinish;
+    
+    if (setLogger)
+    {
+        methodStart = [NSDate date];
+    }
+    
+    NSURLSessionConfiguration *sessionConfig = [NSURLSessionConfiguration defaultSessionConfiguration];
+    
+    sessionConfig.timeoutIntervalForRequest = 20;
+    
+    NSURLSession *session = [NSURLSession sessionWithConfiguration:sessionConfig];
+    
+    NSError *error;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:inputDictionary
+                                                       options:NSJSONWritingPrettyPrinted
+                                                         error:&error];
+    
+    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@", path]];
+    
+    if (setLogger)
+    {
+        NSLog(@"Input Dictionary:\n%@", inputDictionary);
+        NSLog(@"Web Service Path:\n%@", [NSString stringWithFormat:@"%@", path]);
+    }
+    
+    ABURLRequest *defaultRequest = [ABURLRequest defaultRequest];
+    [defaultRequest setURL:url];
+    [defaultRequest setHTTPMethod:HTTPGETMethod];
+    
+    [defaultRequest setValue:ValueForHTTPHeaders forHTTPHeaderField:ContentTypeHeaderFieldKey];
+    [defaultRequest setValue:ValueForHTTPHeaders forHTTPHeaderField:AcceptTypHeaderFieldKey];
+    
+    NSURLSessionUploadTask *uploadTask = [session
+                                          uploadTaskWithRequest:defaultRequest
+                                          fromData:jsonData
+                                          completionHandler:^(NSData *data,
+                                                              NSURLResponse *response,
+                                                              NSError *error)
+                                          {
+                                              
+                                              /* Completely removing unneccesary logic. Sending block with all the information*/
+                                              
+                                              completionBlock(data, error, response);
+                                              
+                                              if (setLogger)
+                                              {
+                                                  methodFinish = [NSDate date];
+                                                  NSLog(@"Completion block reached in:%f second(s)", [methodFinish timeIntervalSinceDate:methodStart]);
+                                              }
+                                              
+                                              
+                                          }];
+    
+    
+    [uploadTask resume];
 }
 
 + (void)setLogger
 {
     setLogger = YES;
 }
+
 
 
 
