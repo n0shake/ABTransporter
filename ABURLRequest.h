@@ -11,6 +11,6 @@
 @interface ABURLRequest : NSMutableURLRequest
 
 + (instancetype)defaultRequest;
-+ (instancetype)defaultRequestWithURL:(NSURL)url;
++ (instancetype)defaultRequestWithURL:(NSURL*)url;
 
 @end

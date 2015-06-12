@@ -13,7 +13,6 @@
 
 static BOOL setLogger = NO;
 static ABMainTransporter *sharedTransporter = nil;
-static NSMutableURLRequest *defaultRequest = nil;
 
 /*Commonly used strings for URL Requests*/
 NSString *const ContentTypeHeaderFieldKey = @"Content-Type";
@@ -52,19 +51,19 @@ NSString *const HTTPGETMethod = @"GET";
     NSURLSession *session = [NSURLSession sharedSession];
     
     NSURL* URL = [NSURL URLWithString:[NSString stringWithFormat:@"%@", path]];
-    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:URL];
-    [request setTimeoutInterval:20];
+
+    ABURLRequest *defaultRequest = [ABURLRequest defaultRequestWithURL:URL];
     
     if (setLogger)
     {
         NSLog(@"Web Service Path:\n%@", [NSString stringWithFormat:@"%@",path]);
     }
     
-    [request setHTTPMethod:HTTPPOSTMethod];
-    [request setValue:ValueForHTTPHeaders forHTTPHeaderField:ContentTypeHeaderFieldKey];
-    [request setValue:ValueForHTTPHeaders forHTTPHeaderField:AcceptTypHeaderFieldKey];
+    [defaultRequest setHTTPMethod:HTTPPOSTMethod];
+    [defaultRequest setValue:ValueForHTTPHeaders forHTTPHeaderField:ContentTypeHeaderFieldKey];
+    [defaultRequest setValue:ValueForHTTPHeaders forHTTPHeaderField:AcceptTypHeaderFieldKey];
     
-    NSURLSessionDataTask *dataTask = [session dataTaskWithRequest:request
+    NSURLSessionDataTask *dataTask = [session dataTaskWithRequest:defaultRequest
                                                 completionHandler:^(NSData *data, NSURLResponse *response, NSError *error)
                                       {
                                           completionBlock(data, response, error);
@@ -110,14 +109,14 @@ NSString *const HTTPGETMethod = @"GET";
         NSLog(@"Web Service Path:\n%@", [NSString stringWithFormat:@"%@", path]);
     }
     
-    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:url];
-    [request setHTTPMethod:HTTPPOSTMethod];
+    ABURLRequest *defaultRequest = [ABURLRequest requestWithURL:url];
+    [defaultRequest setHTTPMethod:HTTPPOSTMethod];
     
-    [request setValue:ValueForHTTPHeaders forHTTPHeaderField:ContentTypeHeaderFieldKey];
-    [request setValue:ValueForHTTPHeaders forHTTPHeaderField:AcceptTypHeaderFieldKey];
+    [defaultRequest setValue:ValueForHTTPHeaders forHTTPHeaderField:ContentTypeHeaderFieldKey];
+    [defaultRequest setValue:ValueForHTTPHeaders forHTTPHeaderField:AcceptTypHeaderFieldKey];
     
     NSURLSessionUploadTask *uploadTask = [session
-                                          uploadTaskWithRequest:request
+                                          uploadTaskWithRequest:defaultRequest
                                           fromData:jsonData
                                           completionHandler:^(NSData *data,
                                                               NSURLResponse *response,
